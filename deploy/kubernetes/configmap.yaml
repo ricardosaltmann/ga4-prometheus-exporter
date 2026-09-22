@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ga4-exporter-config
+  labels:
+    app.kubernetes.io/name: ga4-prometheus-exporter
+data:
+  config.yaml: |
+    server:
+      listen_address: "0.0.0.0"
+      port: 9674
+    logging:
+      level: "INFO"
+      format: "json"
+    google:
+      credentials_file: "/run/secrets/ga4/service-account.json"
+      timeout_seconds: 30
+    properties:
+      - name: "portal"
+        property_id: "123456789"
+        enabled: true
+    collection:
+      realtime:
+        enabled: true
+        interval_seconds: 60
+      core:
+        enabled: true
+        interval_seconds: 300
+    cache:
+      stale_after_seconds: 900
+    quota:
+      enabled: true

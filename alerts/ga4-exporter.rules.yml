@@ -1,0 +1,67 @@
+# ==============================================================================
+# Regras de Alerta do Prometheus para GA4 Exporter
+# ==============================================================================
+
+groups:
+  - name: ga4_exporter_alerts
+    rules:
+      # 1. Exporter Inacessível
+      - alert: GA4ExporterDown
+        expr: up{job="google_analytics_ga4"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "GA4 Exporter instance is unreachable"
+          description: "Prometheus cannot scrape target {{ $labels.instance }} for job {{ $labels.job }}."
+
+      # 2. Falha de Coleta na API GA4
+      - alert: GA4CollectorDown
+        expr: ga4_exporter_collector_up == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GA4 collector failure for {{ $labels.property }} [{{ $labels.collector }}]"
+          description: "The collector '{{ $labels.collector }}' for property '{{ $labels.property }}' is failing to collect data from Google Analytics Data API."
+
+      # 3. Dados em Cache Obsoletos (Stale Data)
+      - alert: GA4DataStale
+        expr: (time() - ga4_exporter_last_success_timestamp_seconds) > 900
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GA4 cached data is stale for {{ $labels.property }} [{{ $labels.collector }}]"
+          description: "No successful GA4 data collection has occurred for property '{{ $labels.property }}' in the last 15 minutes."
+
+      # 4. Quota de Tokens GA4 Baixa (Menos de 20% restantes por hora)
+      - alert: GA4QuotaTokensPerHourLow
+        expr: (ga4_api_quota_tokens_per_hour_remaining / (ga4_api_quota_tokens_per_hour_remaining + ga4_api_quota_tokens_per_hour_consumed)) < 0.20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GA4 API hourly token quota is low for {{ $labels.property }}"
+          description: "Property '{{ $labels.property }}' has less than 20% of its hourly GA4 API tokens remaining (remaining: {{ $value }})."
+
+      # 5. Taxa de Erro da API Elevada
+      - alert: GA4APIErrorRateHigh
+        expr: rate(ga4_exporter_api_errors_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API error rate for {{ $labels.property }} [{{ $labels.collector }}]"
+          description: "Google Analytics Data API calls for '{{ $labels.property }}' are generating errors (type: {{ $labels.error_type }})."
+
+      # 6. Alerta de Queda Drástica de Tráfego (Exemplo desabilitado por padrão)
+      # Deve ser ajustado conforme a sazonalidade e linha de base do cliente.
+      # - alert: GA4AbnormalTrafficDrop
+      #   expr: (ga4_realtime_active_users / (ga4_realtime_active_users offset 1w)) < 0.30
+      #   for: 15m
+      #   labels:
+      #     severity: critical
+      #   annotations:
+      #     summary: "Abnormal drop in realtime active users for {{ $labels.property }}"
+      #     description: "Current active users on {{ $labels.property }} is less than 30% compared to the same time last week."

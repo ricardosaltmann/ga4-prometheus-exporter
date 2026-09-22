@@ -1,0 +1,20 @@
+services:
+  ga4-exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ga4-prometheus-exporter:latest
+    container_name: ga4-exporter
+    restart: unless-stopped
+    ports:
+      - "9674:9674"
+    volumes:
+      - ./config.yaml:/etc/ga4-exporter/config.yaml:ro
+      - ./secrets/ga4.json:/run/secrets/ga4.json:ro
+    environment:
+      GA4_CONFIG: /etc/ga4-exporter/config.yaml
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/ga4.json
+      GA4_LOG_LEVEL: INFO
+    security_opt:
+      - no-new-privileges:true
+    read_only: false

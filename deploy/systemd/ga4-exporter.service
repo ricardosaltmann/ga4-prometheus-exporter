@@ -1,0 +1,30 @@
+[Unit]
+Description=GA4 Prometheus Exporter Service
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ga4-exporter
+Group=ga4-exporter
+WorkingDirectory=/opt/ga4-exporter
+
+ExecStart=/usr/local/bin/ga4-exporter run --config /etc/ga4-exporter/config.yaml
+Restart=on-failure
+RestartSec=5s
+
+# Environment
+Environment=GA4_CONFIG=/etc/ga4-exporter/config.yaml
+Environment=GOOGLE_APPLICATION_CREDENTIALS=/etc/ga4-exporter/secrets/ga4.json
+
+# Hardening
+ProtectSystem=strict
+ProtectHome=true
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

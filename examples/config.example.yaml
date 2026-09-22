@@ -1,0 +1,107 @@
+# ==============================================================================
+# GA4 Prometheus Exporter - Exemplo de Configuração de Produção
+# ==============================================================================
+
+server:
+  listen_address: "0.0.0.0"
+  port: 9674
+
+logging:
+  level: "INFO"       # Opções: DEBUG, INFO, WARNING, ERROR
+  format: "json"      # Opções: json (recomendado para produção) ou text (desenvolvimento)
+
+google:
+  # Caminho para a chave de Service Account (JSON).
+  # Se omitido, usará automaticamente Application Default Credentials (ADC).
+  credentials_file: "/run/secrets/ga4.json"
+  timeout_seconds: 30
+
+# Lista de propriedades GA4 para coletar métricas
+# O exporter suporta múltiplas propriedades com isolamento total de falhas!
+properties:
+  - name: "portal"
+    property_id: "123456789"  # ID numérico do GA4 (NÃO usar G-XXXXXX)
+    enabled: true
+
+  # - name: "app_mobile"
+  #   property_id: "987654321"
+  #   enabled: true
+
+collection:
+  # Coleta em Tempo Real (runRealtimeReport)
+  realtime:
+    enabled: true
+    interval_seconds: 60      # Intervalo em segundos para consulta realtime (padrão: 60s)
+
+  # Coleta de Relatórios Agregados (runReport)
+  core:
+    enabled: true
+    interval_seconds: 300     # Intervalo em segundos para consulta core (padrão: 300s = 5 min)
+    date_range:
+      start_date: "today"     # "today", "yesterday", ou data fixa "YYYY-MM-DD"
+      end_date: "today"
+
+cache:
+  # Período de tolerância para servir os últimos dados válidos se a API falhar
+  stale_after_seconds: 900    # 15 minutos
+
+prometheus:
+  include_property_id_label: false   # Adicionar property_id="123456789" nas labels?
+  max_series_per_query: 100          # Limite rigoroso de proteção contra explosão de cardinalidade
+
+quota:
+  enabled: true                      # Monitorar consumo e saldo de quotas da API do GA4
+
+metrics:
+  # Métricas coletadas em Tempo Real
+  realtime:
+    - name: "activeUsers"
+      prometheus_name: "ga4_realtime_active_users"
+
+  # Métricas de Relatório Core Agregado
+  core:
+    - name: "activeUsers"
+      prometheus_name: "ga4_active_users"
+
+    - name: "totalUsers"
+      prometheus_name: "ga4_total_users"
+
+    - name: "newUsers"
+      prometheus_name: "ga4_new_users"
+
+    - name: "sessions"
+      prometheus_name: "ga4_sessions"
+
+    - name: "engagedSessions"
+      prometheus_name: "ga4_engaged_sessions"
+
+    - name: "screenPageViews"
+      prometheus_name: "ga4_screen_page_views"
+
+    - name: "eventCount"
+      prometheus_name: "ga4_event_count"
+
+    - name: "engagementRate"
+      prometheus_name: "ga4_engagement_rate"
+
+    - name: "bounceRate"
+      prometheus_name: "ga4_bounce_rate"
+
+  # Dimensões seguras de baixa cardinalidade (opcional)
+  # safe_dimensions:
+  #   - name: "deviceCategory"
+  #     prometheus_label: "device_category"
+
+  # Top-N Páginas mais visitadas com controle de cardinalidade
+  top_pages:
+    enabled: false
+    dimension: "pagePath"
+    metric: "screenPageViews"
+    limit: 20
+
+  # Eventos customizados específicos filtrados diretamente na consulta à API
+  # events:
+  #   - name: "login"
+  #     enabled: true
+  #   - name: "purchase"
+  #     enabled: true

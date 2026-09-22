@@ -1,0 +1,28 @@
+# Git
+.git
+.gitignore
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Tests and virtual environments
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Secrets and credentials
+*.json
+credentials/
+secrets/
+.env
+
+# Documentation and design
+docs/
+*.md
+!README.md

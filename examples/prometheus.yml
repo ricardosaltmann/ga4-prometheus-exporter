@@ -1,0 +1,34 @@
+# ==============================================================================
+# Exemplo de Configuração de Coleta no Prometheus (prometheus.yml)
+# ==============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Job de coleta do GA4 Prometheus Exporter
+  # NOTA DE ARQUITETURA:
+  # O scrape do Prometheus NÃO provoca chamadas à API do Google Analytics.
+  # O exporter consulta o GA4 em segundo plano e responde a partir do seu cache
+  # em memória. Portanto, um scrape_interval de 15s ou 30s é seguro e leve!
+  - job_name: "google_analytics_ga4"
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: "/metrics"
+
+    static_configs:
+      # Exemplo 1: Host local ou nome de serviço Docker Compose / Kubernetes
+      - targets:
+          - "ga4-exporter:9674"
+        labels:
+          environment: "production"
+          source: "google_analytics"
+
+      # Exemplo 2: Servidor remoto ou FQDN de cliente específico
+      # - targets:
+      #     - "ga4-exporter.cliente-x.internal:9674"
+      #   labels:
+      #     environment: "production"
+      #     client: "cliente_x"
+      #     source: "google_analytics"

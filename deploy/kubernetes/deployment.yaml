@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ga4-prometheus-exporter
+  labels:
+    app.kubernetes.io/name: ga4-prometheus-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ga4-prometheus-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ga4-prometheus-exporter
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: exporter
+          image: ga4-prometheus-exporter:latest
+          imagePullPolicy: IfNotPresent
+          args: ["run", "--config", "/etc/ga4-exporter/config.yaml"]
+          ports:
+            - name: metrics
+              containerPort: 9674
+              protocol: TCP
+          env:
+            - name: GA4_CONFIG
+              value: "/etc/ga4-exporter/config.yaml"
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/run/secrets/ga4/service-account.json"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/ga4-exporter
+              readOnly: true
+            - name: secret-volume
+              mountPath: /run/secrets/ga4
+              readOnly: true
+      volumes:
+        - name: config-volume
+          configMap:
+            name: ga4-exporter-config
+        - name: secret-volume
+          secret:
+            secretName: ga4-exporter-credentials
