@@ -1,6 +1,6 @@
 # GA4 Prometheus Exporter
 
-[![CI Pipeline](https://github.com/example/ga4-prometheus-exporter/actions/workflows/ci.yml/badge.svg)](https://github.com/example/ga4-prometheus-exporter)
+[![CI Pipeline](https://github.com/ricardosaltmann/ga4-prometheus-exporter/actions/workflows/ci.yml/badge.svg)](https://github.com/ricardosaltmann/ga4-prometheus-exporter)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python: 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
 
