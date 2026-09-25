@@ -1,0 +1,218 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Visão Geral Operacional do Exporter & Quotas",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 2,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "title": "Exporter Status",
+      "type": "stat",
+      "targets": [{ "expr": "ga4_exporter_up", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "FALHA" }, "1": { "color": "green", "text": "OK" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 4, "y": 1 },
+      "id": 3,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "title": "Status da Coleta GA4 (Collector Up)",
+      "type": "stat",
+      "targets": [{ "expr": "ga4_exporter_collector_up{property=~\"$property\"}", "legendFormat": "{{property}} - {{collector}}", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 300 }, { "color": "red", "value": 900 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 9, "y": 1 },
+      "id": 4,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "title": "Idade do Cache (Cache Age)",
+      "type": "stat",
+      "targets": [{ "expr": "ga4_exporter_cache_age_seconds{property=~\"$property\"}", "legendFormat": "{{property}} - {{collector}}", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 5000 }, { "color": "green", "value": 15000 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 14, "y": 1 },
+      "id": 5,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "title": "Tokens GA4 Restantes (Hora)",
+      "type": "stat",
+      "targets": [{ "expr": "ga4_api_quota_tokens_per_hour_remaining{property=~\"$property\"}", "legendFormat": "{{property}} - {{quota_type}}", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 20000 }, { "color": "green", "value": 50000 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 19, "y": 1 },
+      "id": 6,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "title": "Tokens GA4 Restantes (Dia)",
+      "type": "stat",
+      "targets": [{ "expr": "ga4_api_quota_tokens_per_day_remaining{property=~\"$property\"}", "legendFormat": "{{property}} - {{quota_type}}", "refId": "A" }]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 7,
+      "title": "Métricas de Tráfego e Usuários em Tempo Real",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "fillOpacity": 25, "lineWidth": 2 }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 8,
+      "title": "Usuários Ativos em Tempo Real (Realtime Active Users)",
+      "type": "timeseries",
+      "targets": [{ "expr": "ga4_realtime_active_users{property=~\"$property\"}", "legendFormat": "{{property}}", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "fillOpacity": 15, "lineWidth": 2 }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 9,
+      "title": "Sessões e Visualizações de Página (Hoje)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "ga4_sessions{property=~\"$property\"}", "legendFormat": "Sessões - {{property}}", "refId": "A" },
+        { "expr": "ga4_screen_page_views{property=~\"$property\"}", "legendFormat": "Page Views - {{property}}", "refId": "B" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 10,
+      "title": "Engajamento e Qualidade de Tráfego",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 0.5 }] }
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 15 },
+      "id": 11,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "title": "Taxa de Engajamento (Engagement Rate)",
+      "type": "gauge",
+      "targets": [{ "expr": "ga4_engagement_rate{property=~\"$property\"}", "legendFormat": "{{property}}", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.6 }] }
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 15 },
+      "id": 12,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "title": "Taxa de Rejeição (Bounce Rate)",
+      "type": "gauge",
+      "targets": [{ "expr": "ga4_bounce_rate{property=~\"$property\"}", "legendFormat": "{{property}}", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } }
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 15 },
+      "id": 13,
+      "title": "Total de Eventos Disparados Hoje (Event Count)",
+      "type": "timeseries",
+      "targets": [{ "expr": "ga4_event_count{property=~\"$property\"}", "legendFormat": "{{property}} {{event}}", "refId": "A" }]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["ga4", "prometheus", "google-analytics", "observability"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "Prometheus", "value": "Prometheus" },
+        "hide": 0,
+        "label": "Data Source",
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      },
+      {
+        "allValue": ".*",
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "definition": "label_values(ga4_exporter_collector_up, property)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Propriedade",
+        "multi": true,
+        "name": "property",
+        "query": { "query": "label_values(ga4_exporter_collector_up, property)", "refId": "StandardVariableQuery" },
+        "refresh": 2,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": { "refresh_intervals": ["10s", "30s", "1m", "5m"] },
+  "timezone": "browser",
+  "title": "Google Analytics 4 (GA4) - Overview & Operations",
+  "uid": "ga4-prometheus-exporter"
+}

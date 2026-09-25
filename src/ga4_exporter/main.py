@@ -109,6 +109,10 @@ def cmd_run(args: argparse.Namespace) -> int:
         config.server.listen_address = args.host
     if args.port:
         config.server.port = args.port
+    if getattr(args, "realtime_interval", None):
+        config.collection.realtime.interval_seconds = args.realtime_interval
+    if getattr(args, "core_interval", None):
+        config.collection.core.interval_seconds = args.core_interval
 
     logger = setup_logging(level=config.logging.level, log_format=config.logging.format)
     logger.info(
@@ -152,6 +156,8 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--host", help="HTTP listen host")
     run_parser.add_argument("--port", type=int, help="HTTP listen port")
     run_parser.add_argument("--log-level", help="Log level (DEBUG, INFO, WARNING, ERROR)")
+    run_parser.add_argument("--realtime-interval", type=int, help="Realtime collection interval in seconds (default: 60)")
+    run_parser.add_argument("--core-interval", type=int, help="Core collection interval in seconds (default: 300)")
 
     # Command: validate
     subparsers.add_parser(

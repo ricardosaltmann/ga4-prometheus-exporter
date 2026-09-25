@@ -12,7 +12,6 @@ from google.analytics.data_v1beta.types import (
     RunRealtimeReportRequest,
     RunReportRequest,
 )
-from google.api_core.gapic_v1.client_info import ClientInfo
 from google.api_core.exceptions import (
     DeadlineExceeded,
     InternalServerError,
@@ -22,6 +21,7 @@ from google.api_core.exceptions import (
     ServiceUnavailable,
     Unauthenticated,
 )
+from google.api_core.gapic_v1.client_info import ClientInfo
 from tenacity import (
     RetryCallState,
     retry,
@@ -102,6 +102,7 @@ class GA4Client:
         property_id: str,
         metric_names: list[str],
         dimension_names: list[str] | None = None,
+        limit: int | None = None,
         return_property_quota: bool = True,
     ) -> Any:
         """Execute a runRealtimeReport call with retries and timeout."""
@@ -113,6 +114,7 @@ class GA4Client:
             property=property_path,
             metrics=metrics,
             dimensions=dimensions,
+            limit=limit,
             return_property_quota=return_property_quota,
         )
 

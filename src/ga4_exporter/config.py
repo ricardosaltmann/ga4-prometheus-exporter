@@ -125,6 +125,18 @@ class CustomEventConfig(BaseModel):
     enabled: bool = True
 
 
+class BreakdownConfig(BaseModel):
+    """Configuration for dimension breakdowns (e.g. devices, channels)."""
+    enabled: bool = False
+    limit: int = Field(default=10, ge=1, le=50)
+
+
+class RealtimeScreensConfig(BaseModel):
+    """Configuration for realtime screens."""
+    enabled: bool = False
+    limit: int = Field(default=10, ge=1, le=50)
+
+
 class MetricsConfig(BaseModel):
     """Metrics mapping definitions."""
     realtime: list[MetricMapping] = Field(
@@ -148,6 +160,10 @@ class MetricsConfig(BaseModel):
     safe_dimensions: list[DimensionBreakdownConfig] = Field(default_factory=list)
     top_pages: TopPagesConfig = Field(default_factory=TopPagesConfig)
     events: list[CustomEventConfig] = Field(default_factory=list)
+    devices: BreakdownConfig = Field(default_factory=BreakdownConfig)
+    traffic_channels: BreakdownConfig = Field(default_factory=BreakdownConfig)
+    realtime_devices: BreakdownConfig = Field(default_factory=BreakdownConfig)
+    realtime_screens: RealtimeScreensConfig = Field(default_factory=RealtimeScreensConfig)
 
 
 class PropertyConfig(BaseModel):
@@ -217,4 +233,34 @@ def load_config(config_path: str | None = None) -> AppConfig:
     if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
         data["google"]["credentials_file"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
+    # Collection interval overrides
+    if "collection" not in data:
+        data["collection"] = {}
+    if "realtime" not in data["collection"]:
+        data["collection"]["realtime"] = {}
+    if "core" not in data["collection"]:
+        data["collection"]["core"] = {}
+
+    rt_interval = os.getenv("GA4_REALTIME_INTERVAL_SECONDS") or os.getenv("GA4_REALTIME_INTERVAL")
+    if rt_interval:
+        data["collection"]["realtime"]["interval_seconds"] = int(rt_interval)
+
+    core_interval = os.getenv("GA4_CORE_INTERVAL_SECONDS") or os.getenv("GA4_CORE_INTERVAL")
+    if core_interval:
+        data["collection"]["core"]["interval_seconds"] = int(core_interval)
+
+    # Cache stale retention overrides
+    if "cache" not in data:
+        data["cache"] = {}
+    stale_sec = os.getenv("GA4_CACHE_STALE_AFTER_SECONDS")
+    if stale_sec:
+        data["cache"]["stale_after_seconds"] = int(stale_sec)
+
+    # Property ID override from environment (e.g. for containerized deploys)
+    env_prop_id = os.getenv("GA4_PROPERTY_ID")
+    if env_prop_id:
+        env_prop_name = os.getenv("GA4_PROPERTY_NAME", "default")
+        data["properties"] = [{"name": env_prop_name, "property_id": env_prop_id, "enabled": True}]
+
     return AppConfig.model_validate(data)
+

@@ -1,0 +1,829 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "title": "Visão Executiva & Indicadores Principais (KPIs)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Número de Usuários ativos navegando no Portal Web neste instante (janela móvel dos últimos 30 minutos).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "thresholds"
+          },
+          "custom": {
+            "sparkline": {
+              "fillOpacity": 0.25,
+              "lineColor": "#00ff88",
+              "show": true
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              },
+              {
+                "color": "#00ff88",
+                "value": 100
+              }
+            ]
+          }
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 0,
+        "y": 1
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "auto"
+      },
+      "title": "⚡ Usuários Online Agora (Tempo Real)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "ga4_realtime_active_users{property=~\"$property\"}",
+          "legendFormat": "{{property}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Total de sessões acumuladas no portal desde as 00:00 de hoje.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "sparkline": {
+              "fillOpacity": 0.2,
+              "lineColor": "#60a5fa",
+              "show": true
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#60a5fa",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 5,
+        "y": 1
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "auto"
+      },
+      "title": "📊 Sessões Iniciadas Hoje",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "ga4_sessions{property=~\"$property\"}",
+          "legendFormat": "Sessões",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Total de visualizações de telas e páginas acumuladas hoje.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "sparkline": {
+              "fillOpacity": 0.2,
+              "lineColor": "#38bdf8",
+              "show": true
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#38bdf8",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 10,
+        "y": 1
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "auto"
+      },
+      "title": "📄 Visualizações de Página (Hoje)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "ga4_screen_page_views{property=~\"$property\"}",
+          "legendFormat": "Page Views",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Usuários que acessaram o portal pela primeira vez hoje.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#a78bfa",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 15,
+        "y": 1
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "auto"
+      },
+      "title": "👤 Novos Utilizadores",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "ga4_new_users{property=~\"$property\"}",
+          "legendFormat": "Novos",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Tempo médio que os Usuários passam navegando no portal em cada visita hoje.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#f59e0b",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 19,
+        "y": 1
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "auto"
+      },
+      "title": "⏱️ Duração Média da Sessão",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "ga4_average_session_duration_seconds{property=~\"$property\"}",
+          "legendFormat": "Duração",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "id": 101,
+      "title": "Tráfego em Tempo Real & Top Telas Operacionais (NOC Live)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Curva contínua de Usuários ativos navegando no portal em tempo real nos últimos 30 minutos.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#00ff88",
+            "mode": "fixed"
+          },
+          "custom": {
+            "fillOpacity": 25,
+            "gradientMode": "opacity",
+            "lineWidth": 2,
+            "spanNulls": true
+          }
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 0,
+        "y": 6
+      },
+      "id": 6,
+      "title": "📈 Fluxo Contínuo de Usuários Online (Tempo Real)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "ga4_realtime_active_users{property=~\"$property\"}",
+          "legendFormat": "Usuários Online (Últimos 30m)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Distribuição percentual de dispositivos dos Usuários conectados neste momento.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 5,
+        "x": 10,
+        "y": 6
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "title": "📱 Dispositivos Ativos Agora",
+      "type": "piechart",
+      "targets": [
+        {
+          "expr": "ga4_realtime_device_active_users{property=~\"$property\", device=~\"desktop|mobile|tablet\"}",
+          "legendFormat": "{{device}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Telas e funcionalidades da Portal Web com maior volume de Usuários conectados agora.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "fillOpacity": 80,
+            "gradientMode": "scheme",
+            "lineWidth": 1
+          }
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 9,
+        "x": 15,
+        "y": 6
+      },
+      "id": 8,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "title": "📍 Top Telas com Maior Afluência Agora (Tempo Real)",
+      "type": "bargauge",
+      "targets": [
+        {
+          "expr": "topk(7, ga4_realtime_screen_active_users{property=~\"$property\", screen!~\"other\"})",
+          "instant": true,
+          "legendFormat": "{{screen}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 102,
+      "title": "Canais de Aquisição & Páginas Mais Navegadas do Portal (Hoje)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Canais de onde se originam as visitas ao portal (Acesso Direto, Google Search, Links Externos, Assistentes de IA).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 0,
+        "y": 15
+      },
+      "id": 9,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "title": "🌐 Canais de Aquisição de Tráfego (Sessões Hoje)",
+      "type": "bargauge",
+      "targets": [
+        {
+          "expr": "ga4_traffic_channel_sessions{property=~\"$property\", channel!~\"other|Unassigned\"}",
+          "instant": true,
+          "legendFormat": "{{channel}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Rotas e endereços web com maior volume de acessos hoje no portal.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 14,
+        "x": 10,
+        "y": 15
+      },
+      "id": 10,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "title": "🔗 Top 8 Rotas e Páginas Mais Acessadas do Portal (Hoje)",
+      "type": "bargauge",
+      "targets": [
+        {
+          "expr": "topk(8, ga4_top_page_views{property=~\"$property\", page!~\"other\"})",
+          "instant": true,
+          "legendFormat": "{{page}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "id": 103,
+      "title": "Interações com Serviços Digitais, Engajamento e Quotas da API",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Eventos de início e submissão de formulários online, pesquisas e novas visitas.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 24
+      },
+      "id": 11,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "title": "📝 Eventos de Formulários e Interações Críticas (Hoje)",
+      "type": "bargauge",
+      "targets": [
+        {
+          "expr": "ga4_event_count{property=~\"$property\", event=~\"form_start|form_submit|view_search_results|session_start|first_visit\"}",
+          "instant": true,
+          "legendFormat": "{{event}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Taxa de sessões com engajamento (>10 segundos ou 2+ páginas visualizadas) vs taxa de rejeição.",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 5,
+        "x": 8,
+        "y": 24
+      },
+      "id": 12,
+      "title": "🎯 Taxa de Engajamento",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "ga4_engagement_rate{property=~\"$property\"}",
+          "legendFormat": "Engajamento",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Média de páginas visualizadas por visita e número de Usuários que navegaram em profundidade (>90% de scroll na página).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#38bdf8",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 5,
+        "x": 13,
+        "y": 24
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "auto"
+      },
+      "title": "📖 Profundidade da Navegação",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "ga4_screen_page_views_per_session{property=~\"$property\"}",
+          "legendFormat": "Páginas por Sessão",
+          "refId": "A"
+        },
+        {
+          "expr": "ga4_scrolled_users{property=~\"$property\"}",
+          "legendFormat": "Usuários c/ Scroll Profundo",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Saldo de tokens da Google Cloud Analytics API disponíveis para consultas do exporter (limites por hora e por dia).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5000
+              },
+              {
+                "color": "green",
+                "value": 15000
+              }
+            ]
+          }
+        }
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 24
+      },
+      "id": 14,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "auto"
+      },
+      "title": "🔒 Saldo de Tokens Quota GA4",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "ga4_api_quota_tokens_per_hour_remaining{property=~\"$property\", quota_type=\"core\"}",
+          "legendFormat": "Tokens Restantes (Hora)",
+          "refId": "A"
+        },
+        {
+          "expr": "ga4_api_quota_tokens_per_day_remaining{property=~\"$property\", quota_type=\"core\"}",
+          "legendFormat": "Tokens Restantes (Dia)",
+          "refId": "B"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": [
+    "ga4",
+    "prometheus",
+    "command-center",
+    "noc"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "Prometheus",
+          "value": "Prometheus"
+        },
+        "hide": 0,
+        "label": "Data Source",
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "definition": "label_values(ga4_exporter_collector_up, property)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Propriedade",
+        "multi": true,
+        "name": "property",
+        "query": {
+          "query": "label_values(ga4_exporter_collector_up, property)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Google Analytics 4 - NOC & Executive Command Center",
+  "uid": "ga4-command-center"
+}

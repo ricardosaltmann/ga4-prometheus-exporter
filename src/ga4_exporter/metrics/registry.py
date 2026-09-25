@@ -32,7 +32,7 @@ class GA4CustomCollector:
 
         for name, sample_list in grouped.items():
             first = sample_list[0]
-            label_names = sorted(list(first.labels.keys()))
+            label_names = sorted(list({k for s in sample_list for k in s.labels}))
             doc = first.documentation or GA4_METRIC_DOCS.get(name, f"GA4 metric: {name}")
 
             gauge = GaugeMetricFamily(name, doc, labels=label_names)

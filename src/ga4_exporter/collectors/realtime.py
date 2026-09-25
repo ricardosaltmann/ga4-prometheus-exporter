@@ -74,7 +74,51 @@ class RealtimeCollector(BaseCollector):
                             )
                         )
 
-        # 4. Extract quotas if enabled
+        # 4. Realtime device breakdown (if enabled)
+        if self.config.metrics.realtime_devices.enabled:
+            try:
+                rt_dev_resp = self.client.run_realtime_report(
+                    property_id=self.property_id,
+                    metric_names=["activeUsers"],
+                    dimension_names=["deviceCategory"],
+                    limit=self.config.metrics.realtime_devices.limit,
+                    return_property_quota=False,
+                )
+                for row in getattr(rt_dev_resp, "rows", []):
+                    device = row.dimension_values[0].value
+                    labels = dict(base_labels)
+                    labels["device"] = device
+                    try:
+                        u_val = float(row.metric_values[0].value)
+                    except (ValueError, TypeError):
+                        u_val = 0.0
+                    samples.append(MetricSample(name="ga4_realtime_device_active_users", labels=labels, value=u_val))
+            except Exception as exc:
+                logger.warning(f"Failed to fetch realtime devices for {self.property_name}: {exc}")
+
+        # 5. Realtime screens breakdown (if enabled)
+        if self.config.metrics.realtime_screens.enabled:
+            try:
+                rt_screen_resp = self.client.run_realtime_report(
+                    property_id=self.property_id,
+                    metric_names=["activeUsers"],
+                    dimension_names=["unifiedScreenName"],
+                    limit=self.config.metrics.realtime_screens.limit,
+                    return_property_quota=False,
+                )
+                for row in getattr(rt_screen_resp, "rows", []):
+                    screen = row.dimension_values[0].value
+                    labels = dict(base_labels)
+                    labels["screen"] = screen
+                    try:
+                        u_val = float(row.metric_values[0].value)
+                    except (ValueError, TypeError):
+                        u_val = 0.0
+                    samples.append(MetricSample(name="ga4_realtime_screen_active_users", labels=labels, value=u_val))
+            except Exception as exc:
+                logger.warning(f"Failed to fetch realtime screens for {self.property_name}: {exc}")
+
+        # 6. Extract quotas if enabled
         if self.config.quota.enabled and hasattr(response, "property_quota"):
             quota = parse_property_quota(response.property_quota)
             if quota:

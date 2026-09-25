@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /install /usr/local
 
 # Copy application source code
-COPY pyproject.toml .
+COPY pyproject.toml README.md ./
 COPY src/ /app/src/
 
 # Install application in editable or site-packages

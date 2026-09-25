@@ -25,7 +25,6 @@ class CoreCollector(BaseCollector):
         total_rows = 0
 
         metric_mappings = self.config.metrics.core
-        metric_names = [m.name for m in metric_mappings]
         start_date = self.config.collection.core.date_range.start_date
         end_date = self.config.collection.core.date_range.end_date
 
@@ -33,43 +32,55 @@ class CoreCollector(BaseCollector):
         if self.config.prometheus.include_property_id_label:
             base_labels["property_id"] = self.property_id
 
-        # 1. Main Core Aggregate Query (no high-cardinality dimensions)
-        response = self.client.run_core_report(
-            property_id=self.property_id,
-            metric_names=metric_names,
-            start_date=start_date,
-            end_date=end_date,
-            return_property_quota=self.config.quota.enabled,
-        )
+        # 1. Main Core Aggregate Query (chunked to respect GA4 10-metrics limit per request)
+        quota_response = None
+        chunk_size = 10
+        chunks = [
+            metric_mappings[i : i + chunk_size]
+            for i in range(0, len(metric_mappings), chunk_size)
+        ]
 
-        rows = getattr(response, "rows", [])
-        total_rows += len(rows)
+        for chunk_idx, chunk in enumerate(chunks):
+            chunk_metric_names = [m.name for m in chunk]
+            resp = self.client.run_core_report(
+                property_id=self.property_id,
+                metric_names=chunk_metric_names,
+                start_date=start_date,
+                end_date=end_date,
+                return_property_quota=self.config.quota.enabled if chunk_idx == 0 else False,
+            )
+            if chunk_idx == 0:
+                quota_response = resp
 
-        if not rows:
-            for mapping in metric_mappings:
-                samples.append(
-                    MetricSample(
-                        name=mapping.prometheus_name,
-                        labels=dict(base_labels),
-                        value=0.0,
-                    )
-                )
-        else:
-            first_row = rows[0]
-            for idx, metric_val in enumerate(getattr(first_row, "metric_values", [])):
-                if idx < len(metric_mappings):
-                    prom_name = metric_mappings[idx].prometheus_name
-                    try:
-                        val = float(metric_val.value)
-                    except (ValueError, TypeError):
-                        val = 0.0
+            rows = getattr(resp, "rows", [])
+            total_rows += len(rows)
+
+            if not rows:
+                for mapping in chunk:
                     samples.append(
                         MetricSample(
-                            name=prom_name,
+                            name=mapping.prometheus_name,
                             labels=dict(base_labels),
-                            value=val,
+                            value=0.0,
                         )
                     )
+            else:
+                first_row = rows[0]
+                for idx, metric_val in enumerate(getattr(first_row, "metric_values", [])):
+                    if idx < len(chunk):
+                        prom_name = chunk[idx].prometheus_name
+                        try:
+                            val = float(metric_val.value)
+                        except (ValueError, TypeError):
+                            val = 0.0
+                        samples.append(
+                            MetricSample(
+                                name=prom_name,
+                                labels=dict(base_labels),
+                                value=val,
+                            )
+                        )
+
 
         # 2. Top-N Pages (if enabled)
         top_pages_cfg = self.config.metrics.top_pages
@@ -173,9 +184,74 @@ class CoreCollector(BaseCollector):
             except Exception as exc:
                 logger.warning(f"Failed to fetch custom events for {self.property_name}: {exc}")
 
-        # 4. Extract quotas from main report
-        if self.config.quota.enabled and hasattr(response, "property_quota"):
-            quota = parse_property_quota(response.property_quota)
+        # 4. Devices breakdown (if enabled)
+        if self.config.metrics.devices.enabled:
+            try:
+                dev_resp = self.client.run_core_report(
+                    property_id=self.property_id,
+                    metric_names=["activeUsers", "sessions", "screenPageViews"],
+                    dimension_names=["deviceCategory"],
+                    start_date=start_date,
+                    end_date=end_date,
+                    limit=self.config.metrics.devices.limit,
+                    return_property_quota=False,
+                )
+                for row in getattr(dev_resp, "rows", []):
+                    device = row.dimension_values[0].value
+                    labels = dict(base_labels)
+                    labels["device"] = device
+                    try:
+                        u_val = float(row.metric_values[0].value)
+                    except (ValueError, TypeError):
+                        u_val = 0.0
+                    try:
+                        s_val = float(row.metric_values[1].value)
+                    except (ValueError, TypeError):
+                        s_val = 0.0
+                    try:
+                        p_val = float(row.metric_values[2].value)
+                    except (ValueError, TypeError):
+                        p_val = 0.0
+
+                    samples.append(MetricSample(name="ga4_device_active_users", labels=labels, value=u_val))
+                    samples.append(MetricSample(name="ga4_device_sessions", labels=labels, value=s_val))
+                    samples.append(MetricSample(name="ga4_device_screen_page_views", labels=labels, value=p_val))
+            except Exception as exc:
+                logger.warning(f"Failed to fetch device breakdown for {self.property_name}: {exc}")
+
+        # 5. Traffic channels breakdown (if enabled)
+        if self.config.metrics.traffic_channels.enabled:
+            try:
+                tc_resp = self.client.run_core_report(
+                    property_id=self.property_id,
+                    metric_names=["sessions", "activeUsers"],
+                    dimension_names=["sessionDefaultChannelGroup"],
+                    start_date=start_date,
+                    end_date=end_date,
+                    limit=self.config.metrics.traffic_channels.limit,
+                    return_property_quota=False,
+                )
+                for row in getattr(tc_resp, "rows", []):
+                    channel = row.dimension_values[0].value
+                    labels = dict(base_labels)
+                    labels["channel"] = channel
+                    try:
+                        s_val = float(row.metric_values[0].value)
+                    except (ValueError, TypeError):
+                        s_val = 0.0
+                    try:
+                        u_val = float(row.metric_values[1].value)
+                    except (ValueError, TypeError):
+                        u_val = 0.0
+
+                    samples.append(MetricSample(name="ga4_traffic_channel_sessions", labels=labels, value=s_val))
+                    samples.append(MetricSample(name="ga4_traffic_channel_users", labels=labels, value=u_val))
+            except Exception as exc:
+                logger.warning(f"Failed to fetch traffic channels for {self.property_name}: {exc}")
+
+        # 6. Extract quotas from main report
+        if self.config.quota.enabled and quota_response and hasattr(quota_response, "property_quota"):
+            quota = parse_property_quota(quota_response.property_quota)
             if quota:
                 quota_labels = {"property": self.property_name, "quota_type": "core"}
                 if self.config.prometheus.include_property_id_label:

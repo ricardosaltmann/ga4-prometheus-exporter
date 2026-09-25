@@ -239,6 +239,8 @@ kubectl apply -f deploy/kubernetes/deployment.yaml
 
 ## 11. Configuração (`config.yaml`)
 
+O tempo de coleta e as métricas podem ser personalizados no `config.yaml`:
+
 ```yaml
 server:
   listen_address: "0.0.0.0"
@@ -246,61 +248,123 @@ server:
 
 logging:
   level: "INFO"       # DEBUG, INFO, WARNING, ERROR
-  format: "json"      # json ou text
+  format: "text"      # json (recomendado para Kubernetes/produção) ou text
 
 google:
-  credentials_file: "/run/secrets/ga4.json"
+  credentials_file: "/run/secrets/ga4.json"  # Opcional se usar ADC
   timeout_seconds: 30
 
 properties:
-  - name: "portal"
-    property_id: "123456789"
+  - name: "portal_web"
+    property_id: "123456789"  # ID numérico da Propriedade GA4
     enabled: true
 
+# Configuração de Agendamento das Coletas
 collection:
   realtime:
     enabled: true
-    interval_seconds: 60
+    interval_seconds: 60      # Intervalo da consulta em tempo real (padrão: 60s)
   core:
     enabled: true
-    interval_seconds: 300
+    interval_seconds: 300     # Intervalo da consulta agregada do dia (padrão: 300s = 5 min)
     date_range:
       start_date: "today"
       end_date: "today"
 
 cache:
-  stale_after_seconds: 900
+  stale_after_seconds: 900    # Retém dados em caso de falha transitória (15 minutos)
 
 quota:
-  enabled: true
+  enabled: true               # Monitora tokens restantes da API da Google Cloud
 
 metrics:
   realtime:
     - name: "activeUsers"
       prometheus_name: "ga4_realtime_active_users"
+
   core:
+    - name: "activeUsers"
+      prometheus_name: "ga4_active_users"
+    - name: "totalUsers"
+      prometheus_name: "ga4_total_users"
+    - name: "newUsers"
+      prometheus_name: "ga4_new_users"
     - name: "sessions"
       prometheus_name: "ga4_sessions"
+    - name: "engagedSessions"
+      prometheus_name: "ga4_engaged_sessions"
     - name: "screenPageViews"
       prometheus_name: "ga4_screen_page_views"
+    - name: "eventCount"
+      prometheus_name: "ga4_total_event_count"
     - name: "engagementRate"
       prometheus_name: "ga4_engagement_rate"
+    - name: "bounceRate"
+      prometheus_name: "ga4_bounce_rate"
+    - name: "averageSessionDuration"
+      prometheus_name: "ga4_average_session_duration_seconds"
+    - name: "screenPageViewsPerSession"
+      prometheus_name: "ga4_screen_page_views_per_session"
+    - name: "scrolledUsers"
+      prometheus_name: "ga4_scrolled_users"
+
+  # Distribuição por Dispositivo (desktop, mobile, tablet)
+  devices:
+    enabled: true
+    limit: 10
+
+  # Canais de Aquisição (Direct, Organic Search, Referral, etc.)
+  traffic_channels:
+    enabled: true
+    limit: 10
+
+  # Dispositivos e Top Telas em Tempo Real
+  realtime_devices:
+    enabled: true
+    limit: 10
+
+  realtime_screens:
+    enabled: true
+    limit: 10
+
+  # Top-N Páginas Mais Acessadas do Dia
+  top_pages:
+    enabled: true
+    dimension: "pagePath"
+    metric: "screenPageViews"
+    limit: 10
+
+  # Eventos Operacionais Filtrados
+  events:
+    - name: "page_view"
+      enabled: true
+    - name: "session_start"
+      enabled: true
+    - name: "form_start"
+      enabled: true
+    - name: "form_submit"
+      enabled: true
+    - name: "view_search_results"
+      enabled: true
 ```
 
 ---
 
 ## 12. Variáveis de Ambiente
 
-As seguintes variáveis de ambiente substituem valores do arquivo de configuração:
+Todas as opções podem ser configuradas dinamicamente via variáveis de ambiente, ideal para Docker e Kubernetes:
 
 | Variável | Padrão | Descrição |
 |---|---|---|
 | `GA4_CONFIG` | `config.yaml` | Caminho do arquivo de configuração YAML |
-| `GOOGLE_APPLICATION_CREDENTIALS` | *(vazio)* | Caminho do arquivo JSON da Service Account |
+| `GOOGLE_APPLICATION_CREDENTIALS` | *(vazio)* | Caminho da chave JSON da Service Account Google Cloud |
 | `GA4_LISTEN_ADDRESS` | `0.0.0.0` | Endereço IP de escuta do servidor HTTP |
 | `GA4_PORT` | `9674` | Porta TCP do exporter |
 | `GA4_LOG_LEVEL` | `INFO` | Nível de log (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
-| `HTTPS_PROXY` / `HTTP_PROXY` | *(vazio)* | Proxy HTTP/HTTPS padrão para conexões externas |
+| `GA4_REALTIME_INTERVAL_SECONDS` | `60` | **Tempo de coleta em tempo real** (em segundos) |
+| `GA4_CORE_INTERVAL_SECONDS` | `300` | **Tempo de coleta dos relatórios do dia** (em segundos) |
+| `GA4_CACHE_STALE_AFTER_SECONDS` | `900` | Tempo de retenção de dados em caso de falha de conexão |
+| `HTTPS_PROXY` / `HTTP_PROXY` | *(vazio)* | Proxy corporativo HTTP/HTTPS |
 
 ---
 
@@ -344,26 +408,67 @@ As regras prontas estão em `alerts/ga4-exporter.rules.yml`. Incluem:
 
 ---
 
-## 16. Dashboard no Grafana
+## 16. Dashboards no Grafana
 
-Um dashboard completo pronto para importação está disponível em `examples/grafana_dashboard.json`.
-Ele contém:
-- **Painéis Operacionais**: Status do Exporter, Status da Coleta GA4, Idade do Cache, Quota de Tokens restante (hora/dia).
-- **Painéis de Tráfego**: Usuários Ativos em Tempo Real, Sessões e Page Views acumuladas no dia, Total de Eventos.
-- **Painéis de Qualidade**: Taxa de Engajamento (*Engagement Rate*) e Taxa de Rejeição (*Bounce Rate*).
+O repositório fornece **dois dashboards prontos**, 100% sanitizados (sem URLs, IDs ou nomes de clientes proprietários), prontos para importação no Grafana:
+
+1. 🌟 **`examples/ga4_command_center.json`** — **Google Analytics 4 - NOC & Executive Command Center** (Moderno, estilo sala de controle/NOC, com Bar Gauges proporcionais e Sparklines).
+2. **`examples/grafana_dashboard.json`** — **Google Analytics 4 (GA4) - Overview & Operations** (Dashboard operacional tradicional).
+
+### Layout do Dashboard NOC (`ga4_command_center.json`):
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Google Analytics 4 - NOC & Executive Command Center                                                     │
+├───────────────────┬───────────────────┬───────────────────┬───────────────────┬─────────────────────────┤
+│ ⚡ Usuários Online │ 📊 Sessões Hoje   │ 📄 Page Views     │ 👤 Novos Utiliz.   │ ⏱️ Duração Média Sessão │
+│      16.726       │       7.542       │      96.953       │       3.881       │        08m 54s          │
+│   (Tempo Real)    │    (Sparkline)    │    (Sparkline)    │   (Primeira vez)  │    (Qualidade Visita)   │
+├───────────────────┴───────────────────┴───────┬───────────────────────────────┴─────────────────────────┤
+│ 📈 Fluxo Contínuo de Usuários (Últimos 30m)   │ 📍 Onde os Usuários Estão Agora (Top Telas em Tempo Real)│
+│ [ Gráfico de onda contínua ao longo do tempo] │ Painel Principal     ██████████████████ 15.085          │
+│                                               │ Área de Serviços     ████ 1.045                         │
+│ 📱 Dispositivos Ativos Agora (Donut)          │ Pagamentos           ███ 841                            │
+│ Desktop: 74% | Mobile: 25% | Tablet: 1%       │ Consultas Gerais     ██ 694                             │
+├───────────────────────────────────────────────┼─────────────────────────────────────────────────────────┤
+│ 🌐 Canais de Aquisição de Tráfego (Hoje)      │ 🔗 Top 8 Rotas e Páginas Mais Acessadas do Portal (Hoje)│
+│ Direto (Direct)       ██████████████ 3.342    │ /portal/home         ██████████████ 8.611               │
+│ Pesquisa Orgânica     ████████████ 3.065      │ /portal/servicos     ████████████ 7.618                 │
+│ Links Externos        ████ 1.022              │ /portal/mensagens    █████ 3.203                        │
+│ Assistentes de IA     █ 22                    │ /portal/pesquisa     ███ 1.885                          │
+├───────────────────────────────────────────────┼───────────────────────────────┬─────────────────────────┤
+│ 📝 Eventos e Formulários Críticos (Hoje)      │ 🎯 Taxa de Engajamento        │ 🔒 Saldo Quota GA4      │
+│ page_view: 96.953 | scroll: 40.398            │        [ Gauge: 77,5% ]       │ Hora: 39.482 / 40.000   │
+│ form_start: 1.586 | form_submit: 274          │ 📖 Págs/Sessão: 12,8          │ Dia: 198.678 / 200.000  │
+└───────────────────────────────────────────────┴───────────────────────────────┴─────────────────────────┘
+```
 
 ---
 
-## 17. Monitoramento e Gestão de Quotas
+## 17. Monitoramento e Gestão de Quotas (Sistema de Tokens do GA4)
 
-A Google Analytics Data API v1 possui cotas por propriedade e por projeto. O exporter ativa `returnPropertyQuota=True` nas consultas e expõe automaticamente as seguintes métricas Prometheus:
+### Como funciona o Sistema de Quotas da Google Analytics Data API v1?
+Diferente da API antiga do Universal Analytics, o GA4 adota o conceito de **Tokens de Quota por Propriedade**:
+- Cada consulta executada contra o Google consome um pequeno montante de tokens (geralmente entre **1 e 10 tokens** por requisição, dependendo do volume de métricas e dimensões solicitadas).
+- Se uma aplicação esgotar esses tokens, a Google bloqueia o acesso imediatamente com erro **`HTTP 429 - ResourceExhausted`**.
 
-- `ga4_api_quota_tokens_per_hour_remaining{property="...", quota_type="..."}`
-- `ga4_api_quota_tokens_per_hour_consumed{property="...", quota_type="..."}`
-- `ga4_api_quota_tokens_per_day_remaining{property="...", quota_type="..."}`
-- `ga4_api_quota_tokens_per_day_consumed{property="...", quota_type="..."}`
-- `ga4_api_quota_concurrent_requests_remaining{property="...", quota_type="..."}`
-- `ga4_api_quota_server_errors_remaining{property="...", quota_type="..."}`
+### Tetos Oficiais Estabelecidos pela Google (Contas Padrão):
+* **Por Hora:** `40.000 tokens`
+* **Por Dia:** `200.000 tokens`
+* **Concorrência:** Máximo de `10` consultas simultâneas
+
+### Como a Arquitetura do Exporter Protege a Sua Conta:
+O exporter utiliza um **agendador assíncrono com cache local thread-safe**. 
+* Quando o Prometheus realiza raspagem a cada **15 segundos**, ele lê **apenas a memória RAM** do exporter.
+* As requisições à Google são controladas por você (ex: 60 segundos para tempo real e 300 segundos para o agregado).
+* **Consumo Real:** O exporter consome menos de **1.000 tokens por hora** de um teto de 40.000, operando com **mais de 97,5% de margem de segurança**.
+
+### Métricas de Quota Expostas no `/metrics`:
+* `ga4_api_quota_tokens_per_hour_remaining`: Saldo restante para a hora atual.
+* `ga4_api_quota_tokens_per_hour_consumed`: Total de tokens já utilizados na hora.
+* `ga4_api_quota_tokens_per_day_remaining`: Saldo restante para o dia.
+* `ga4_api_quota_tokens_per_day_consumed`: Total de tokens já utilizados no dia.
+* `ga4_api_quota_concurrent_requests_remaining`: Capacidade disponível de consultas simultâneas.
 
 ---
 
@@ -371,7 +476,7 @@ A Google Analytics Data API v1 possui cotas por propriedade e por projeto. O exp
 
 Prometheus não é banco de dados analítico. Para prevenir a explosão de séries:
 - Dimensões de alta cardinalidade (`pagePath`, `userPseudoId`, `transactionId`) **nunca** são transformadas em labels indiscriminadamente.
-- Suporte a **Top-N Páginas**: Coleta no máximo `limit: 20` páginas mais acessadas.
+- Suporte a **Top-N Páginas**: Coleta no máximo `limit: 10` ou `20` páginas mais acessadas.
 - Eventos customizados são filtrados via parâmetro de consulta na API (`eventName in ['login', 'purchase']`).
 - Limite global de séries: `max_series_per_query: 100`. Qualquer série excedente é descartada de forma controlada e contabilizada em `ga4_exporter_series_dropped_total`.
 - **Privacidade (LGPD/GDPR)**: Nenhum identificador pessoal (User ID, IP, Client ID, e-mail) é coletado ou exposto.
@@ -380,18 +485,24 @@ Prometheus não é banco de dados analítico. Para prevenir a explosão de séri
 
 ## 19. Ferramentas de Linha de Comando (CLI)
 
-O exporter vem com comandos de diagnóstico:
+O exporter vem com comandos de diagnóstico e execução direta:
 
 ```bash
-# Validar arquivo de configuração e credenciais
+# Validar arquivo de configuração e credenciais sem subir o servidor
 ga4-exporter validate --config config.yaml
 
-# Testar conectividade ao vivo com a API do GA4
+# Testar conectividade ao vivo com a API do Google Analytics 4
 ga4-exporter test-connection --config config.yaml
 
-# Executar o exporter com opções customizadas
-ga4-exporter run --config config.yaml --port 9674 --log-level INFO
+# Executar o exporter com tempos de coleta e portas personalizados
+ga4-exporter run \
+  --config config.yaml \
+  --port 9674 \
+  --realtime-interval 60 \
+  --core-interval 300 \
+  --log-level INFO
 ```
+
 
 ---
 

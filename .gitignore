@@ -54,6 +54,7 @@ secrets/
 *.pem
 *.key
 *.p12
+poc/config.poc.yaml
 
 # IDEs
 .idea/
