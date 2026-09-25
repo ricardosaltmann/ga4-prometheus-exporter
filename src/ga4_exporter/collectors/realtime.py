@@ -15,6 +15,7 @@ class RealtimeCollector(BaseCollector):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(name="realtime", *args, **kwargs)
+        self._breakdown_cycle = 0
 
     def collect(self) -> None:
         start_ms = time.perf_counter()
@@ -74,8 +75,45 @@ class RealtimeCollector(BaseCollector):
                             )
                         )
 
-        # 4. Realtime device breakdown (if enabled)
-        if self.config.metrics.realtime_devices.enabled:
+        # 4. Check quota health before making secondary breakdown queries
+        quota = None
+        if self.config.quota.enabled and hasattr(response, "property_quota"):
+            quota = parse_property_quota(response.property_quota)
+
+        project_tokens_remaining = (
+            quota.tokens_per_project_per_hour.remaining
+            if (quota and quota.tokens_per_project_per_hour)
+            else 99999.0
+        )
+        hourly_tokens_remaining = (
+            quota.tokens_per_hour.remaining
+            if (quota and quota.tokens_per_hour)
+            else 99999.0
+        )
+
+        # Quota Circuit Breaker: If remaining tokens are critically low, skip breakdowns
+        skip_breakdowns = project_tokens_remaining < 250 or hourly_tokens_remaining < 500
+        if skip_breakdowns:
+            logger.warning(
+                f"Hourly token quota is low for {self.property_name} (project_remaining={project_tokens_remaining}, "
+                f"property_remaining={hourly_tokens_remaining}). Skipping realtime breakdowns to preserve quota."
+            )
+
+        # 5. Staggered breakdown execution:
+        # On cycle 1, collect both to prime the cache immediately.
+        # On subsequent cycles, alternate to save 50% of secondary API calls while cache keeps serving both.
+        self._breakdown_cycle += 1
+        is_first_cycle = self._breakdown_cycle == 1
+        has_both = self.config.metrics.realtime_devices.enabled and self.config.metrics.realtime_screens.enabled
+        do_devices = self.config.metrics.realtime_devices.enabled and (
+            is_first_cycle or not has_both or self._breakdown_cycle % 2 == 1
+        )
+        do_screens = self.config.metrics.realtime_screens.enabled and (
+            is_first_cycle or not has_both or self._breakdown_cycle % 2 == 0
+        )
+
+        # 5a. Realtime device breakdown
+        if do_devices and not skip_breakdowns:
             try:
                 rt_dev_resp = self.client.run_realtime_report(
                     property_id=self.property_id,
@@ -96,8 +134,8 @@ class RealtimeCollector(BaseCollector):
             except Exception as exc:
                 logger.warning(f"Failed to fetch realtime devices for {self.property_name}: {exc}")
 
-        # 5. Realtime screens breakdown (if enabled)
-        if self.config.metrics.realtime_screens.enabled:
+        # 5b. Realtime screens breakdown
+        if do_screens and not skip_breakdowns:
             try:
                 rt_screen_resp = self.client.run_realtime_report(
                     property_id=self.property_id,
@@ -119,28 +157,41 @@ class RealtimeCollector(BaseCollector):
                 logger.warning(f"Failed to fetch realtime screens for {self.property_name}: {exc}")
 
         # 6. Extract quotas if enabled
-        if self.config.quota.enabled and hasattr(response, "property_quota"):
-            quota = parse_property_quota(response.property_quota)
-            if quota:
-                quota_labels = {"property": self.property_name, "quota_type": "realtime"}
-                if self.config.prometheus.include_property_id_label:
-                    quota_labels["property_id"] = self.property_id
+        if self.config.quota.enabled and quota:
+            quota_labels = {"property": self.property_name, "quota_type": "realtime"}
+            if self.config.prometheus.include_property_id_label:
+                quota_labels["property_id"] = self.property_id
 
-                if quota.tokens_per_hour:
-                    samples.append(
-                        MetricSample(
-                            name="ga4_api_quota_tokens_per_hour_remaining",
-                            labels=dict(quota_labels),
-                            value=quota.tokens_per_hour.remaining,
-                        )
+            if quota.tokens_per_hour:
+                samples.append(
+                    MetricSample(
+                        name="ga4_api_quota_tokens_per_hour_remaining",
+                        labels=dict(quota_labels),
+                        value=quota.tokens_per_hour.remaining,
                     )
-                    samples.append(
-                        MetricSample(
-                            name="ga4_api_quota_tokens_per_hour_consumed",
-                            labels=dict(quota_labels),
-                            value=quota.tokens_per_hour.consumed,
-                        )
+                )
+                samples.append(
+                    MetricSample(
+                        name="ga4_api_quota_tokens_per_hour_consumed",
+                        labels=dict(quota_labels),
+                        value=quota.tokens_per_hour.consumed,
                     )
+                )
+            if quota.tokens_per_project_per_hour:
+                samples.append(
+                    MetricSample(
+                        name="ga4_api_quota_tokens_per_project_per_hour_remaining",
+                        labels=dict(quota_labels),
+                        value=quota.tokens_per_project_per_hour.remaining,
+                    )
+                )
+                samples.append(
+                    MetricSample(
+                        name="ga4_api_quota_tokens_per_project_per_hour_consumed",
+                        labels=dict(quota_labels),
+                        value=quota.tokens_per_project_per_hour.consumed,
+                    )
+                )
                 if quota.tokens_per_day:
                     samples.append(
                         MetricSample(

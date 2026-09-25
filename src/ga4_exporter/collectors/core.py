@@ -272,6 +272,21 @@ class CoreCollector(BaseCollector):
                             value=quota.tokens_per_hour.consumed,
                         )
                     )
+                if quota.tokens_per_project_per_hour:
+                    samples.append(
+                        MetricSample(
+                            name="ga4_api_quota_tokens_per_project_per_hour_remaining",
+                            labels=dict(quota_labels),
+                            value=quota.tokens_per_project_per_hour.remaining,
+                        )
+                    )
+                    samples.append(
+                        MetricSample(
+                            name="ga4_api_quota_tokens_per_project_per_hour_consumed",
+                            labels=dict(quota_labels),
+                            value=quota.tokens_per_project_per_hour.consumed,
+                        )
+                    )
                 if quota.tokens_per_day:
                     samples.append(
                         MetricSample(
