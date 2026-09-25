@@ -702,7 +702,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Saldo de tokens da Google Cloud Analytics API disponíveis para consultas do exporter (limites por hora e por dia).",
+      "description": "Monitoramento de custos e consumo de tokens da API do Google Analytics 4. Exibe a quantidade gasta hoje e na hora atual, acompanhada do saldo restante seguro.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -712,20 +712,90 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "#10b981",
                 "value": null
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Gasto.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
               },
               {
-                "color": "yellow",
-                "value": 5000
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#38bdf8",
+                      "value": null
+                    },
+                    {
+                      "color": "#f59e0b",
+                      "value": 2000
+                    },
+                    {
+                      "color": "#ef4444",
+                      "value": 10000
+                    }
+                  ]
+                }
               },
               {
-                "color": "green",
-                "value": 15000
+                "id": "custom.sparkline",
+                "value": {
+                  "fillOpacity": 0.3,
+                  "show": true
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Saldo.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#ef4444",
+                      "value": null
+                    },
+                    {
+                      "color": "#f59e0b",
+                      "value": 5000
+                    },
+                    {
+                      "color": "#10b981",
+                      "value": 15000
+                    }
+                  ]
+                }
               }
             ]
           }
-        }
+        ]
       },
       "gridPos": {
         "h": 7,
@@ -736,28 +806,44 @@
       "id": 14,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "textMode": "auto"
       },
-      "title": "🔒 Saldo de Tokens Quota GA4",
+      "title": "💳 Custos & Consumo de Tokens GA4",
       "type": "stat",
       "targets": [
         {
-          "expr": "ga4_api_quota_tokens_per_hour_remaining{property=~\"$property\", quota_type=\"core\"}",
-          "legendFormat": "Tokens Restantes (Hora)",
+          "expr": "ga4_api_quota_tokens_per_day_consumed{property=~\"$property\", quota_type=\"core\"}",
+          "instant": false,
+          "legendFormat": "Gasto Hoje (Tokens)",
           "refId": "A"
         },
         {
           "expr": "ga4_api_quota_tokens_per_day_remaining{property=~\"$property\", quota_type=\"core\"}",
-          "legendFormat": "Tokens Restantes (Dia)",
+          "instant": false,
+          "legendFormat": "Saldo Restante (Dia / 200k)",
           "refId": "B"
+        },
+        {
+          "expr": "ga4_api_quota_tokens_per_hour_consumed{property=~\"$property\", quota_type=\"core\"}",
+          "instant": false,
+          "legendFormat": "Gasto Hora Atual (Tokens)",
+          "refId": "C"
+        },
+        {
+          "expr": "ga4_api_quota_tokens_per_hour_remaining{property=~\"$property\", quota_type=\"core\"}",
+          "instant": false,
+          "legendFormat": "Saldo Restante (Hora / 40k)",
+          "refId": "D"
         }
       ]
     }

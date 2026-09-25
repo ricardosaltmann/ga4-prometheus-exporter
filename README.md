@@ -437,9 +437,9 @@ O repositório fornece **dois dashboards prontos**, 100% sanitizados (sem URLs, 
 │ Links Externos        ████ 1.022              │ /portal/mensagens    █████ 3.203                        │
 │ Assistentes de IA     █ 22                    │ /portal/pesquisa     ███ 1.885                          │
 ├───────────────────────────────────────────────┼───────────────────────────────┬─────────────────────────┤
-│ 📝 Eventos e Formulários Críticos (Hoje)      │ 🎯 Taxa de Engajamento        │ 🔒 Saldo Quota GA4      │
-│ page_view: 96.953 | scroll: 40.398            │        [ Gauge: 77,5% ]       │ Hora: 39.482 / 40.000   │
-│ form_start: 1.586 | form_submit: 274          │ 📖 Págs/Sessão: 12,8          │ Dia: 198.678 / 200.000  │
+│ 📝 Eventos e Formulários Críticos (Hoje)      │ 🎯 Taxa de Engajamento        │ 💳 Custos & Tokens GA4  │
+│ page_view: 96.953 | scroll: 40.398            │        [ Gauge: 77,5% ]       │ Gasto Hoje: 1.322       │
+│ form_start: 1.586 | form_submit: 274          │ 📖 Págs/Sessão: 12,8          │ Saldo Dia: 198.678      │
 └───────────────────────────────────────────────┴───────────────────────────────┴─────────────────────────┘
 ```
 
