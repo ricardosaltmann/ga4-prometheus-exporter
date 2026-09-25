@@ -10,8 +10,8 @@ networks:
 
 services:
   ga4_exporter:
-    # Imagem no registry local corporativo ou GHCR
-    image: ghcr.io/ricardosaltmann/ga4-prometheus-exporter:latest
+    # Imagem oficial no Docker Hub
+    image: ricardoaltmann/ga4-exporter:latest
     hostname: "ga4_exp-{{.Task.Slot}}-{{.Node.Hostname}}"
     environment:
       - LOGSPOUT=ignore
