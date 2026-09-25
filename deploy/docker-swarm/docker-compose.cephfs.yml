@@ -1,0 +1,46 @@
+version: "3.7"
+
+# ==============================================================================
+# GA4 Prometheus Exporter - Docker Swarm Stack com Volumes CephFS
+# ==============================================================================
+
+networks:
+  monitoring_network:
+    external: true
+
+services:
+  ga4_exporter:
+    # Imagem no registry local corporativo ou GHCR
+    image: ghcr.io/ricardosaltmann/ga4-prometheus-exporter:latest
+    hostname: "ga4_exp-{{.Task.Slot}}-{{.Node.Hostname}}"
+    environment:
+      - LOGSPOUT=ignore
+      - GA4_CONFIG=/etc/ga4-exporter/config.yaml
+      - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/ga4.json
+      # Descomente caso exista proxy corporativo de saída HTTPS:
+      # - HTTPS_PROXY=http://proxy.empresa.local:8080
+      # - HTTP_PROXY=http://proxy.empresa.local:8080
+      # - NO_PROXY=localhost,127.0.0.1,.empresa.local
+    networks:
+      monitoring_network:
+    volumes:
+      # Binds no CephFS para Config e Secrets
+      - /cephfs/0/docker/binds/monitoringexporters/ga4_exporter/etc/ga4-exporter/config.yaml:/etc/ga4-exporter/config.yaml:ro
+      - /cephfs/0/docker/binds/monitoringexporters/ga4_exporter/secrets/ga4.json:/run/secrets/ga4.json:ro
+      # Certificados corporativos caso o proxy efetue inspeção SSL
+      - /etc/pki/ca-trust/extracted/pem:/etc/ssl/certs:ro
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement: {}
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "128M"
+        reservations:
+          cpus: "0.1"
+          memory: "64M"
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
