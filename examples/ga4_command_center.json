@@ -554,7 +554,7 @@
         "y": 23
       },
       "id": 103,
-      "title": "Interações com Serviços Digitais, Engajamento e Quotas da API",
+      "title": "Interações com Serviços Digitais & Engajamento dos Usuários",
       "type": "row"
     },
     {
@@ -572,7 +572,7 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 8,
+        "w": 10,
         "x": 0,
         "y": 24
       },
@@ -626,8 +626,8 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 5,
-        "x": 8,
+        "w": 7,
+        "x": 10,
         "y": 24
       },
       "id": 12,
@@ -665,8 +665,8 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 5,
-        "x": 13,
+        "w": 7,
+        "x": 17,
         "y": 24
       },
       "id": 13,
@@ -698,11 +698,23 @@
       ]
     },
     {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "id": 104,
+      "title": "💰 Gestão Orçamentária de Quotas GA4: Consumo, Ritmo e Projeção de Estouro",
+      "type": "row"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Monitoramento de custos e consumo de tokens da API do Google Analytics 4. Exibe a quantidade gasta hoje e na hora atual, acompanhada do saldo restante seguro.",
+      "description": "Consumo acumulado hoje vs saldo disponível e teto total diário de tokens da Google.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -716,8 +728,121 @@
                 "value": null
               }
             ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Gasto.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#38bdf8",
+                      "value": null
+                    },
+                    {
+                      "color": "#f59e0b",
+                      "value": 10000
+                    },
+                    {
+                      "color": "#ef4444",
+                      "value": 50000
+                    }
+                  ]
+                }
+              }
+            ]
           },
-          "mappings": []
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Teto.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#94a3b8",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 32
+      },
+      "id": 20,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "title": "📅 Orçamento Diário (Tokens Hoje)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(ga4_api_quota_tokens_per_day_consumed{property=~\"$property\"})",
+          "legendFormat": "Gasto Hoje (Tokens)",
+          "refId": "A"
+        },
+        {
+          "expr": "min(ga4_api_quota_tokens_per_day_remaining{property=~\"$property\"})",
+          "legendFormat": "Saldo Restante Hoje",
+          "refId": "B"
+        },
+        {
+          "expr": "min(ga4_api_quota_tokens_per_day_consumed{property=~\"$property\"} + ga4_api_quota_tokens_per_day_remaining{property=~\"$property\"})",
+          "legendFormat": "Teto Diário da Conta",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Consumo de tokens na hora corrente vs saldo disponível e teto oficial de 40.000 tokens/hora da Google.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#10b981",
+                "value": null
+              }
+            ]
+          }
         },
         "overrides": [
           {
@@ -751,46 +876,20 @@
                     }
                   ]
                 }
-              },
-              {
-                "id": "custom.sparkline",
-                "value": {
-                  "fillOpacity": 0.3,
-                  "show": true
-                }
               }
             ]
           },
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*Saldo.*"
+              "options": ".*Teto.*"
             },
             "properties": [
               {
                 "id": "color",
                 "value": {
-                  "mode": "thresholds"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "#ef4444",
-                      "value": null
-                    },
-                    {
-                      "color": "#f59e0b",
-                      "value": 5000
-                    },
-                    {
-                      "color": "#10b981",
-                      "value": 15000
-                    }
-                  ]
+                  "fixedColor": "#94a3b8",
+                  "mode": "fixed"
                 }
               }
             ]
@@ -798,12 +897,12 @@
         ]
       },
       "gridPos": {
-        "h": 7,
+        "h": 5,
         "w": 6,
-        "x": 18,
-        "y": 24
+        "x": 6,
+        "y": 32
       },
-      "id": 14,
+      "id": 21,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -818,32 +917,498 @@
         },
         "textMode": "auto"
       },
-      "title": "💳 Custos & Consumo de Tokens GA4",
+      "title": "⏱️ Orçamento Horário (Tokens Hora)",
       "type": "stat",
       "targets": [
         {
-          "expr": "ga4_api_quota_tokens_per_day_consumed{property=~\"$property\", quota_type=\"core\"}",
-          "instant": false,
-          "legendFormat": "Gasto Hoje (Tokens)",
+          "expr": "sum(ga4_api_quota_tokens_per_hour_consumed{property=~\"$property\"})",
+          "legendFormat": "Gasto na Hora (Tokens)",
           "refId": "A"
         },
         {
-          "expr": "ga4_api_quota_tokens_per_day_remaining{property=~\"$property\", quota_type=\"core\"}",
-          "instant": false,
-          "legendFormat": "Saldo Restante (Dia / 200k)",
+          "expr": "min(ga4_api_quota_tokens_per_hour_remaining{property=~\"$property\"})",
+          "legendFormat": "Saldo Restante Hora",
           "refId": "B"
         },
         {
-          "expr": "ga4_api_quota_tokens_per_hour_consumed{property=~\"$property\", quota_type=\"core\"}",
-          "instant": false,
-          "legendFormat": "Gasto Hora Atual (Tokens)",
+          "expr": "min(ga4_api_quota_tokens_per_hour_consumed{property=~\"$property\"} + ga4_api_quota_tokens_per_hour_remaining{property=~\"$property\"})",
+          "legendFormat": "Teto da Hora (40k)",
           "refId": "C"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Velocidade média horária de consumo de tokens e estimativa linear de encerramento do dia.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#38bdf8",
+                "value": null
+              },
+              {
+                "color": "#f59e0b",
+                "value": 5000
+              },
+              {
+                "color": "#ef4444",
+                "value": 20000
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Ritmo.*"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Projeção.*"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 32
+      },
+      "id": 22,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "title": "🔥 Ritmo de Gasto & Projeção 24h",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(ga4_api_quota_tokens_per_hour_consumed{property=~\"$property\"})",
+          "legendFormat": "Ritmo Atual (Tokens/h)",
+          "refId": "A"
         },
         {
-          "expr": "ga4_api_quota_tokens_per_hour_remaining{property=~\"$property\", quota_type=\"core\"}",
-          "instant": false,
-          "legendFormat": "Saldo Restante (Hora / 40k)",
-          "refId": "D"
+          "expr": "sum(ga4_api_quota_tokens_per_day_consumed{property=~\"$property\"}) + (sum(ga4_api_quota_tokens_per_hour_consumed{property=~\"$property\"}) * 12)",
+          "legendFormat": "Projeção Fechamento Hoje",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Percentual consumido da cota diária. Verde: folga operacional (>90% de saldo); Amarelo: atenção (>50% consumido); Vermelho: risco iminente de estouro da API do Google.",
+      "fieldConfig": {
+        "defaults": {
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#10b981",
+                "value": null
+              },
+              {
+                "color": "#f59e0b",
+                "value": 50
+              },
+              {
+                "color": "#ef4444",
+                "value": 85
+              }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 32
+      },
+      "id": 23,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "title": "🚨 Risco de Estouro de Quota Diária",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "100 * (sum(ga4_api_quota_tokens_per_day_consumed{property=~\"$property\"}) / (sum(ga4_api_quota_tokens_per_day_consumed{property=~\"$property\"}) + min(ga4_api_quota_tokens_per_day_remaining{property=~\"$property\"})))",
+          "legendFormat": "% Consumo Diário",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Mostra os tokens gastos acumulados hoje (barras/área), a linha de tendência/projeção linear de consumo e a linha vermelha indicando o teto máximo diário da conta.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Tokens da API GA4",
+            "axisPlacement": "auto",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineWidth": 2,
+            "spanNulls": true
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Gastos.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#38bdf8",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "bars"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 75
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Projeção.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#f59e0b",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 10
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Teto.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#ef4444",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "solid"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 37
+      },
+      "id": 24,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "title": "📈 Projeção do Limite Diário: Gasto Real vs Projeção vs Teto Máximo",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(ga4_api_quota_tokens_per_day_consumed{property=~\"$property\"})",
+          "legendFormat": "Tokens Gastos Hoje (Acumulado)",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(ga4_api_quota_tokens_per_day_consumed{property=~\"$property\"}) + (sum(ga4_api_quota_tokens_per_hour_consumed{property=~\"$property\"}) * 12)",
+          "legendFormat": "Projeção de Consumo (Tendência 24h)",
+          "refId": "B"
+        },
+        {
+          "expr": "min(ga4_api_quota_tokens_per_day_consumed{property=~\"$property\"} + ga4_api_quota_tokens_per_day_remaining{property=~\"$property\"})",
+          "legendFormat": "Teto Máximo Diário da Conta (Limite Google)",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Mostra os tokens gastos na hora atual contra o teto oficial da Google de 40k tokens/hora, demonstrando se o ritmo vai ou não estourar o limite.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Tokens da API GA4",
+            "axisPlacement": "auto",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineWidth": 2,
+            "spanNulls": true
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Gastos.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#06b6d4",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "bars"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 75
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Projeção.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#f59e0b",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 10
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Teto.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#ef4444",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "solid"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 37
+      },
+      "id": 25,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "title": "⏱️ Projeção do Limite Horário: Gasto na Hora vs Teto de 40.000 Tokens",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(ga4_api_quota_tokens_per_hour_consumed{property=~\"$property\"})",
+          "legendFormat": "Tokens Gastos na Hora Atual",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(ga4_api_quota_tokens_per_hour_consumed{property=~\"$property\"}) * 2",
+          "legendFormat": "Projeção para o Fim da Hora",
+          "refId": "B"
+        },
+        {
+          "expr": "min(ga4_api_quota_tokens_per_hour_consumed{property=~\"$property\"} + ga4_api_quota_tokens_per_hour_remaining{property=~\"$property\"})",
+          "legendFormat": "Teto Máximo da Hora (Limite 40k)",
+          "refId": "C"
         }
       ]
     }

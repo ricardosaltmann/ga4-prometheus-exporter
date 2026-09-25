@@ -436,11 +436,21 @@ O repositório fornece **dois dashboards prontos**, 100% sanitizados (sem URLs, 
 │ Pesquisa Orgânica     ████████████ 3.065      │ /portal/servicos     ████████████ 7.618                 │
 │ Links Externos        ████ 1.022              │ /portal/mensagens    █████ 3.203                        │
 │ Assistentes de IA     █ 22                    │ /portal/pesquisa     ███ 1.885                          │
-├───────────────────────────────────────────────┼───────────────────────────────┬─────────────────────────┤
-│ 📝 Eventos e Formulários Críticos (Hoje)      │ 🎯 Taxa de Engajamento        │ 💳 Custos & Tokens GA4  │
-│ page_view: 96.953 | scroll: 40.398            │        [ Gauge: 77,5% ]       │ Gasto Hoje: 1.322       │
-│ form_start: 1.586 | form_submit: 274          │ 📖 Págs/Sessão: 12,8          │ Saldo Dia: 198.678      │
-└───────────────────────────────────────────────┴───────────────────────────────┴─────────────────────────┘
+├───────────────────────────────────────────────┬───────────────────────────────┬─────────────────────────┤
+│ 📝 Eventos e Formulários Críticos (Hoje)      │ 🎯 Taxa de Engajamento        │ 📖 Profundidade Naveg.  │
+│ page_view: 96.953 | scroll: 40.398            │        [ Gauge: 77,5% ]       │ 12,8 págs/sessão        │
+│ form_start: 1.586 | form_submit: 274          │                               │ 40.398 scroll profundo  │
+├───────────────────────────────────────────────┴───────────────────────────────┴─────────────────────────┤
+│ 💰 Gestão Orçamentária de Quotas GA4: Consumo, Ritmo e Projeção de Estouro                              │
+├───────────────────────┬───────────────────────┬───────────────────────┬─────────────────────────────────┤
+│ 📅 Orçamento Diário   │ ⏱️ Orçamento Horário   │ 🔥 Ritmo & Projeção   │ 🚨 Risco de Estouro de Quota    │
+│ Gasto Hoje: 1.322     │ Gasto Hora: 42        │ Ritmo: 50 tokens/h    │        [ Gauge: 0,6% ]          │
+│ Saldo: 198.678 / 200k │ Saldo: 39.958 / 40k   │ Proj. 24h: 1.822      │     (Operação 100% Segura)      │
+├───────────────────────┴───────────────────────┴───────────────────────┴─────────────────────────────────┤
+│ 📈 Projeção do Limite Diário (Timeseries)     │ ⏱️ Projeção do Limite Horário (Timeseries)              │
+│ [Barras: Gasto Real | Linha Tracejada:        │ [Barras: Gasto Hora | Linha Tracejada: Projeção Fim     │
+│ Tendência de Projeção | Linha Vermelha: Teto] │ da Hora | Linha Vermelha: Teto Oficial de 40k Tokens]   │
+└───────────────────────────────────────────────┴─────────────────────────────────────────────────────────┘
 ```
 
 ---
