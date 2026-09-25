@@ -82,9 +82,21 @@ class CoreCollector(BaseCollector):
                         )
 
 
+        # Quota Circuit Breaker for secondary core breakdowns
+        quota = parse_property_quota(quota_response.property_quota) if (self.config.quota.enabled and quota_response and hasattr(quota_response, "property_quota")) else None
+        project_tokens_remaining = quota.tokens_per_project_per_hour.remaining if (quota and quota.tokens_per_project_per_hour) else 99999.0
+        hourly_tokens_remaining = quota.tokens_per_hour.remaining if (quota and quota.tokens_per_hour) else 99999.0
+        skip_breakdowns = project_tokens_remaining < 200 or hourly_tokens_remaining < 400
+
+        if skip_breakdowns:
+            logger.warning(
+                f"Hourly token quota is low for {self.property_name} (project_remaining={project_tokens_remaining}, "
+                f"hourly_remaining={hourly_tokens_remaining}). Skipping secondary core breakdowns to preserve budget."
+            )
+
         # 2. Top-N Pages (if enabled)
         top_pages_cfg = self.config.metrics.top_pages
-        if top_pages_cfg.enabled:
+        if top_pages_cfg.enabled and not skip_breakdowns:
             limit = min(top_pages_cfg.limit, self.config.prometheus.max_series_per_query)
             try:
                 top_resp = self.client.run_core_report(
@@ -128,7 +140,7 @@ class CoreCollector(BaseCollector):
 
         # 3. Custom Events tracking (if enabled)
         configured_events = [e.name for e in self.config.metrics.events if e.enabled]
-        if configured_events:
+        if configured_events and not skip_breakdowns:
             try:
                 # Query with eventName dimension filtered by configured events
                 filter_expr = FilterExpression(
@@ -185,7 +197,7 @@ class CoreCollector(BaseCollector):
                 logger.warning(f"Failed to fetch custom events for {self.property_name}: {exc}")
 
         # 4. Devices breakdown (if enabled)
-        if self.config.metrics.devices.enabled:
+        if self.config.metrics.devices.enabled and not skip_breakdowns:
             try:
                 dev_resp = self.client.run_core_report(
                     property_id=self.property_id,
@@ -220,7 +232,7 @@ class CoreCollector(BaseCollector):
                 logger.warning(f"Failed to fetch device breakdown for {self.property_name}: {exc}")
 
         # 5. Traffic channels breakdown (if enabled)
-        if self.config.metrics.traffic_channels.enabled:
+        if self.config.metrics.traffic_channels.enabled and not skip_breakdowns:
             try:
                 tc_resp = self.client.run_core_report(
                     property_id=self.property_id,

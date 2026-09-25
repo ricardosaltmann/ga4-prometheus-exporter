@@ -21,6 +21,8 @@ def test_parse_full_property_quota():
     assert parsed.tokens_per_hour.remaining == 39942.0
     assert parsed.tokens_per_day.consumed == 1200.0
     assert parsed.tokens_per_day.remaining == 48800.0
+    assert parsed.tokens_per_project_per_hour.consumed == 150.0
+    assert parsed.tokens_per_project_per_hour.remaining == 19850.0
     assert parsed.concurrent_requests.consumed == 1.0
     assert parsed.concurrent_requests.remaining == 9.0
 
