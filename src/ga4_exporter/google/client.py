@@ -38,11 +38,13 @@ logger = logging.getLogger("ga4_exporter")
 
 
 def _is_transient_error(exception: BaseException) -> bool:
-    """Determine whether an exception should be retried."""
-    if isinstance(exception, (ResourceExhausted, ServiceUnavailable, InternalServerError, DeadlineExceeded)):
-        return True
     if isinstance(exception, (PermissionDenied, Unauthenticated, InvalidArgument)):
         return False
+    msg = str(exception).lower()
+    if "exhausted property tokens" in msg or "quota tokens will return in under an hour" in msg:
+        return False
+    if isinstance(exception, (ResourceExhausted, ServiceUnavailable, InternalServerError, DeadlineExceeded)):
+        return True
     if isinstance(exception, (ConnectionResetError, TimeoutError)):
         return True
     # Check status code if present

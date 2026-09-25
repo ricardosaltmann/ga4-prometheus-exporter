@@ -35,18 +35,25 @@ class MetricsCache:
         collector_name: str,
         samples: list[MetricSample],
     ) -> None:
-        """Store fresh successful collection results."""
         now = time.time()
         key = (property_name, collector_name)
-        snapshot = CollectionSnapshot(
-            property_name=property_name,
-            collector_name=collector_name,
-            timestamp=now,
-            is_success=True,
-            samples=samples,
-        )
-
+        merged_samples = list(samples)
         with self._lock:
+            existing = self._snapshots.get(key)
+            if existing and existing.samples:
+                new_names = {s.name for s in samples}
+                if now - existing.timestamp < self.stale_after_seconds:
+                    for old_sample in existing.samples:
+                        if old_sample.name not in new_names:
+                            merged_samples.append(old_sample)
+
+            snapshot = CollectionSnapshot(
+                property_name=property_name,
+                collector_name=collector_name,
+                timestamp=now,
+                is_success=True,
+                samples=merged_samples,
+            )
             self._snapshots[key] = snapshot
             self._last_success[key] = now
 
