@@ -27,8 +27,6 @@ services:
       # Binds no CephFS para Config e Secrets
       - /cephfs/0/docker/binds/monitoringexporters/ga4_exporter/etc/ga4-exporter/config.yaml:/etc/ga4-exporter/config.yaml:ro
       - /cephfs/0/docker/binds/monitoringexporters/ga4_exporter/secrets/ga4.json:/run/secrets/ga4.json:ro
-      # Certificados corporativos caso o proxy efetue inspeção SSL
-      - /etc/pki/ca-trust/extracted/pem:/etc/ssl/certs:ro
     deploy:
       mode: replicated
       replicas: 1
