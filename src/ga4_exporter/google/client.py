@@ -12,7 +12,7 @@ from google.analytics.data_v1beta.types import (
     RunRealtimeReportRequest,
     RunReportRequest,
 )
-from google.api_core.client_info import ClientInfo
+from google.api_core.gapic_v1.client_info import ClientInfo
 from google.api_core.exceptions import (
     DeadlineExceeded,
     InternalServerError,
