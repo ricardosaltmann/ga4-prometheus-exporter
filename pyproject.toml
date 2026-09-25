@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ga4-prometheus-exporter"
-version = "1.0.0"
+version = "1.2.0"
 description = "Production-grade Prometheus Exporter for Google Analytics 4 (GA4) using the Google Analytics Data API v1"
 readme = "README.md"
 requires-python = ">=3.12"
